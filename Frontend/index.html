@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plataforma de Reservas & Citas IT</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
+
+  <!-- Navbar -->
+  <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold">
+          <i class="fas fa-calendar-check text-lg"></i>
+        </div>
+        <span class="font-bold text-lg text-slate-100">CitasIT <span
+            class="text-xs text-blue-400 font-mono px-2 py-0.5 rounded bg-blue-500/10">FullStack</span></span>
+      </div>
+      <div id="userInfo" class="flex items-center gap-4 text-sm">
+        <span id="userBadge" class="text-slate-400">Sin iniciar sesión</span>
+        <button id="authBtn" onclick="toggleAuthModal()"
+          class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-4 py-2 rounded-lg transition-all text-xs">
+          <i class="fas fa-sign-in-alt mr-1"></i> Iniciar Sesión
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+    <!-- Sección 1: Formulario de Nueva Reserva -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+        <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-slate-100">
+          <i class="fas fa-plus-circle text-blue-400"></i> Agendar Cita Técnica
+        </h2>
+
+        <form id="appointmentForm" onsubmit="handleCreateAppointment(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Servicio Técnico</label>
+            <select id="serviceSelect" required
+              class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+              <option value="">Cargando servicios...</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Fecha y Hora</label>
+            <input type="datetime-local" id="appointmentDate" required
+              class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Notas / Detalles del Requerimiento</label>
+            <textarea id="appointmentNotes" rows="3" placeholder="Ej. Equipo no enciende tras subida de tensión..."
+              class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"></textarea>
+          </div>
+
+          <button type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg transition-all text-sm flex items-center justify-center gap-2">
+            <i class="fas fa-paper-plane"></i> Confirmar Cita
+          </button>
+        </form>
+      </div>
+
+      <!-- Sección 2: Servicios Disponibles -->
+      <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+        <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-slate-100">
+          <i class="fas fa-list-check text-blue-400"></i> Catálogo de Servicios IT
+        </h2>
+        <div id="servicesList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Se puebla dinámicamente -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección 3: Dashboard de Citas Registradas -->
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+            <i class="fas fa-tasks text-blue-400"></i> Panel de Control de Citas
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Gestión de estados en tiempo real consumiendo la API REST de .NET 8</p>
+        </div>
+        <button onclick="loadAppointments()"
+          class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 transition-all flex items-center gap-2">
+          <i class="fas fa-sync-alt"></i> Actualizar
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-950 text-slate-400 text-xs uppercase border-b border-slate-800">
+            <tr>
+              <th class="p-3">ID</th>
+              <th class="p-3">Cliente</th>
+              <th class="p-3">Servicio</th>
+              <th class="p-3">Fecha</th>
+              <th class="p-3">Estado</th>
+              <th class="p-3 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="appointmentsTable" class="divide-y divide-slate-800">
+            <!-- Se puebla dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Autenticación (Login / Registro) -->
+  <div id="authModal"
+    class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+      <button onclick="toggleAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-200">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <!-- Pestañas -->
+      <div class="flex border-b border-slate-800 mb-6">
+        <button id="tabLogin" onclick="switchAuthTab('login')"
+          class="flex-1 py-2 font-bold text-sm text-blue-400 border-b-2 border-blue-500">Iniciar Sesión</button>
+        <button id="tabRegister" onclick="switchAuthTab('register')"
+          class="flex-1 py-2 font-bold text-sm text-slate-400 border-b-2 border-transparent hover:text-slate-200">Registrarse</button>
+      </div>
+
+      <!-- Formulario Login -->
+      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Email</label>
+          <input type="email" id="loginEmail" value="cliente@test.com" required
+            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Contraseña</label>
+          <input type="password" id="loginPassword" value="cliente123" required
+            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+        </div>
+        <button type="submit"
+          class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 rounded-lg text-sm transition-all">
+          Acceder
+        </button>
+      </form>
+
+      <!-- Formulario Registro -->
+      <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Nombre Completo</label>
+          <input type="text" id="regFullName" required placeholder="Ej. Juan Pérez"
+            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Email</label>
+          <input type="email" id="regEmail" required placeholder="correo@ejemplo.com"
+            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Contraseña</label>
+          <input type="password" id="regPassword" required placeholder="••••••••"
+            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+        </div>
+        <button type="submit"
+          class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 rounded-lg text-sm transition-all">
+          Crear Cuenta
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/js/script.js"></script>
+</body>
+
+</html>
